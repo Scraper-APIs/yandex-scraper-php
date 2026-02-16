@@ -321,6 +321,10 @@ try {
 - PHP 8.3+
 - [Apify API token](https://console.apify.com/account/integrations)
 
+## See Also
+
+- [2GIS Scraper PHP](https://github.com/Scraper-APIs/2gis-scraper-php) — scrape 2GIS (places, reviews, real estate, jobs)
+
 ## License
 
 MIT
