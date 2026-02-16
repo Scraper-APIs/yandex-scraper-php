@@ -1,5 +1,7 @@
 # Yandex Scraper PHP
 
+**English** | [Русский](https://github.com/Scraper-APIs/yandex-parser-php)
+
 A PHP client library for scraping data from [Yandex](https://yandex.ru) services -- extract places and businesses from Yandex Maps, reviews from Yandex Maps, and products from Yandex Market (Russia's largest marketplace). Returns typed DTOs for each data type.
 
 Powered by [Apify](https://apify.com/) actors under the hood.
