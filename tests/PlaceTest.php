@@ -12,6 +12,7 @@ it('creates place from array', function () {
         ->and($place->description)->toBe('Legendary restaurant of Russian cuisine in a historic mansion on Tverskoy Boulevard.')
         ->and($place->type)->toBe('restaurant')
         ->and($place->url)->toBe('https://yandex.ru/maps/org/pushkin/1124715036/')
+        ->and($place->searchQuery)->toBe('restaurant')
         ->and($place->longitude)->toBe(37.600312)
         ->and($place->latitude)->toBe(55.764353)
         ->and($place->address)->toContain('Tverskoy Boulevard')
@@ -28,9 +29,65 @@ it('creates place from array', function () {
         ->and($place->email)->toBe('info@cafe-pushkin.ru')
         ->and($place->chainName)->toBe('Maison Dellos')
         ->and($place->photoCount)->toBe(245)
-        ->and($place->neurosummary)->toContain('exquisite Russian cuisine')
-        ->and($place->searchQuery)->toBe('restaurant')
-        ->and($place->snippet)->toBe('Famous Russian cuisine restaurant');
+        ->and($place->neurosummary)->toContain('exquisite Russian cuisine');
+});
+
+it('populates new media fields', function () {
+    $place = Place::fromArray(getSamplePlaceData());
+
+    expect($place->videoCount)->toBe(3)
+        ->and($place->videos)->toHaveCount(1)
+        ->and($place->videos[0]['url'])->toContain('youtube.com')
+        ->and($place->posts)->toHaveCount(1);
+});
+
+it('populates geo and region fields', function () {
+    $place = Place::fromArray(getSamplePlaceData());
+
+    expect($place->regionId)->toBe(213)
+        ->and($place->geoId)->toBe(213)
+        ->and($place->shortTitle)->toBe('Pushkin')
+        ->and($place->timezoneOffset)->toBe(10800)
+        ->and($place->panorama)->not->toBeNull()
+        ->and($place->bounds)->not->toBeNull()
+        ->and($place->entrances)->toHaveCount(1);
+});
+
+it('populates booking fields', function () {
+    $place = Place::fromArray(getSamplePlaceData());
+
+    expect($place->bookingLinks)->toHaveCount(1)
+        ->and($place->bookingPartner)->not->toBeNull()
+        ->and($place->bookingPartner['partner'])->toBe('YandexEda');
+});
+
+it('populates menu and legal fields', function () {
+    $place = Place::fromArray(getSamplePlaceData());
+
+    expect($place->menu)->not->toBeNull()
+        ->and($place->menu['totalItems'])->toBe(116)
+        ->and($place->hasMenu())->toBeTrue()
+        ->and($place->legalInfo)->not->toBeNull()
+        ->and($place->legalInfo['name'])->toBe('OOO Maison Dellos')
+        ->and($place->additionalAddress)->toBe('2nd floor, entrance from the courtyard')
+        ->and($place->promo)->not->toBeNull()
+        ->and($place->actionButtons)->toHaveCount(1);
+});
+
+it('populates transit and badge fields', function () {
+    $place = Place::fromArray(getSamplePlaceData());
+
+    expect($place->nearbyMetro)->toHaveCount(1)
+        ->and($place->nearbyStops)->toHaveCount(1)
+        ->and($place->badges)->toBe(['Michelin', 'Popular'])
+        ->and($place->awards)->not->toBeNull();
+});
+
+it('has snippet as array', function () {
+    $place = Place::fromArray(getSamplePlaceData());
+
+    expect($place->snippet)->toBeArray()
+        ->and($place->snippet['text'])->toBe('Famous Russian cuisine restaurant');
 });
 
 it('checks contact info availability', function () {
@@ -63,6 +120,12 @@ it('checks verified status', function () {
     expect($place->isVerified())->toBeTrue();
 });
 
+it('checks video availability', function () {
+    $place = Place::fromArray(getSamplePlaceData());
+
+    expect($place->hasVideos())->toBeTrue();
+});
+
 it('handles missing optional fields', function () {
     $minimal = [
         'businessId' => '123',
@@ -86,10 +149,17 @@ it('handles missing optional fields', function () {
         ->and($place->isOpenNow)->toBeFalse()
         ->and($place->isVerifiedOwner)->toBeFalse()
         ->and($place->neurosummary)->toBeNull()
-        ->and($place->snippet)->toBeNull();
+        ->and($place->snippet)->toBeNull()
+        ->and($place->videoCount)->toBe(0)
+        ->and($place->regionId)->toBeNull()
+        ->and($place->geoId)->toBeNull()
+        ->and($place->menu)->toBeNull()
+        ->and($place->legalInfo)->toBeNull()
+        ->and($place->promo)->toBeNull()
+        ->and($place->bookingPartner)->toBeNull();
 });
 
-it('handles empty arrays for phones and categories', function () {
+it('handles empty arrays for collections', function () {
     $minimal = [
         'businessId' => '123',
         'title' => 'Test Place',
@@ -100,7 +170,18 @@ it('handles empty arrays for phones and categories', function () {
     expect($place->phones)->toBeEmpty()
         ->and($place->categories)->toBeEmpty()
         ->and($place->reviews)->toBeEmpty()
-        ->and($place->photos)->toBeEmpty();
+        ->and($place->photos)->toBeEmpty()
+        ->and($place->posts)->toBeEmpty()
+        ->and($place->videos)->toBeEmpty()
+        ->and($place->bookingLinks)->toBeEmpty()
+        ->and($place->nearbyMetro)->toBeEmpty()
+        ->and($place->nearbyStops)->toBeEmpty()
+        ->and($place->badges)->toBeEmpty()
+        ->and($place->entrances)->toBeEmpty()
+        ->and($place->sources)->toBeEmpty()
+        ->and($place->featureGroups)->toBeEmpty()
+        ->and($place->socialLinks)->toBeEmpty()
+        ->and($place->schedule)->toBeEmpty();
 });
 
 it('returns false for contact info when no phones or email', function () {
@@ -140,4 +221,18 @@ it('returns false for isVerified when not verified', function () {
     $place = Place::fromArray($data);
 
     expect($place->isVerified())->toBeFalse();
+});
+
+it('returns false for hasMenu when no menu', function () {
+    $minimal = ['businessId' => '123', 'title' => 'Test'];
+    $place = Place::fromArray($minimal);
+
+    expect($place->hasMenu())->toBeFalse();
+});
+
+it('returns false for hasVideos when video count is 0', function () {
+    $minimal = ['businessId' => '123', 'title' => 'Test'];
+    $place = Place::fromArray($minimal);
+
+    expect($place->hasVideos())->toBeFalse();
 });

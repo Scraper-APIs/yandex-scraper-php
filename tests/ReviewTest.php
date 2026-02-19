@@ -28,6 +28,20 @@ it('creates review from array', function () {
         ->and($review->isAnonymous)->toBeFalse();
 });
 
+it('populates new review fields', function () {
+    $review = Review::fromArray(getSampleReviewData());
+
+    expect($review->reviewAspects)->toHaveCount(1)
+        ->and($review->textLanguage)->toBe('en')
+        ->and($review->textTranslations)->toHaveCount(1)
+        ->and($review->hasTranslation())->toBeTrue()
+        ->and($review->isPublicRating)->toBeTrue()
+        ->and($review->bold)->toBeFalse()
+        ->and($review->commentCount)->toBe(3)
+        ->and($review->authorAchievements)->toBe(['Top Reviewer', '100+ Reviews'])
+        ->and($review->authorProfessions)->toBe(['Food Critic']);
+});
+
 it('checks business reply presence', function () {
     $review = Review::fromArray(getSampleReviewData());
 
@@ -103,10 +117,25 @@ it('handles missing optional fields', function () {
         ->and($review->businessComment)->toBeNull()
         ->and($review->businessCommentDate)->toBeNull()
         ->and($review->neurosummary)->toBeNull()
+        ->and($review->reviewAspects)->toBeNull()
+        ->and($review->textLanguage)->toBeNull()
+        ->and($review->isPublicRating)->toBeNull()
+        ->and($review->bold)->toBeNull()
+        ->and($review->commentCount)->toBeNull()
         ->and($review->businessCategories)->toBeEmpty()
         ->and($review->photos)->toBeEmpty()
         ->and($review->videos)->toBeEmpty()
+        ->and($review->textTranslations)->toBeEmpty()
+        ->and($review->authorAchievements)->toBeEmpty()
+        ->and($review->authorProfessions)->toBeEmpty()
         ->and($review->isAnonymous)->toBeFalse();
+});
+
+it('returns false for hasTranslation when no translations', function () {
+    $minimal = ['reviewId' => 'rev_001', 'businessId' => '123', 'rating' => 4];
+    $review = Review::fromArray($minimal);
+
+    expect($review->hasTranslation())->toBeFalse();
 });
 
 it('returns false for business reply when not present', function () {

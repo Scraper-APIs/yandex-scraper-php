@@ -6,6 +6,7 @@ namespace YandexParser;
 
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Exception\GuzzleException;
+use YandexParser\DTO\Listing;
 use YandexParser\DTO\Place;
 use YandexParser\DTO\Product;
 use YandexParser\DTO\Review;
@@ -166,6 +167,54 @@ final class Client
 
             return array_map(
                 static fn (array $item): Product => Product::fromArray($item),
+                $items
+            );
+        } catch (GuzzleException $e) {
+            $this->handleGuzzleException($e);
+        }
+    }
+
+    /**
+     * Scrape real estate listings from Yandex Realty.
+     *
+     * @param  string[]  $roomsTotal  Room count filter: ['STUDIO', '1', '2', '3', 'PLUS_4']
+     * @param  array<string, mixed>  $options  Optional (priceMin, priceMax, areaMin, areaMax, floorMin, floorMax, agents, regionId, includePhones, includePriceHistory)
+     * @return Listing[]
+     *
+     * @throws ApiException
+     * @throws RateLimitException
+     */
+    public function scrapeListings(
+        string $location = 'Москва',
+        DealType $dealType = DealType::Sell,
+        PropertyCategory $category = PropertyCategory::Apartment,
+        int $maxItems = 100,
+        RealtySort $sort = RealtySort::Relevance,
+        array $roomsTotal = [],
+        array $options = [],
+    ): array {
+        $input = [
+            'location' => $location,
+            'dealType' => $dealType->value,
+            'category' => $category->value,
+            'maxItems' => $maxItems,
+        ];
+
+        if ($sort !== RealtySort::Relevance) {
+            $input['sort'] = $sort->value;
+        }
+
+        if (count($roomsTotal) > 0) {
+            $input['roomsTotal'] = $roomsTotal;
+        }
+
+        $input = array_merge($input, $options);
+
+        try {
+            $items = $this->runActor(Config::REALTY_ACTOR_ID, $input);
+
+            return array_map(
+                static fn (array $item): Listing => Listing::fromArray($item),
                 $items
             );
         } catch (GuzzleException $e) {

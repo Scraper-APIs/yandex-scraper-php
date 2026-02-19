@@ -2,7 +2,7 @@
 
 **English** | [Русский](https://github.com/Scraper-APIs/yandex-parser-php)
 
-A PHP client library for scraping data from [Yandex](https://yandex.ru) services -- extract places and businesses from Yandex Maps, reviews from Yandex Maps, and products from Yandex Market (Russia's largest marketplace). Returns typed DTOs for each data type.
+A PHP client library for scraping data from [Yandex](https://yandex.ru) services -- extract places and businesses from Yandex Maps, reviews from Yandex Maps, products from Yandex Market (Russia's largest marketplace), and real estate listings from Yandex Realty. Returns typed DTOs for each data type.
 
 Powered by [Apify](https://apify.com/) actors under the hood.
 
@@ -43,11 +43,11 @@ foreach ($places as $place) {
 
 ## Available Methods
 
-The client wraps 3 specialized Apify actors, each optimized for a specific Yandex service.
+The client wraps 4 specialized Apify actors, each optimized for a specific Yandex service.
 
 ### 1. Places / Businesses (Yandex Maps)
 
-Search Yandex Maps by keyword and location. Returns rich records with 40+ fields including contacts, ratings, schedule, photos, AI-generated summaries, and more.
+Search Yandex Maps by keyword and location. Returns rich records with 60+ fields including contacts, ratings, schedule, photos, videos, AI-generated summaries, and more.
 
 ```php
 use YandexParser\Language;
@@ -111,6 +111,8 @@ $place->getFirstPhone();     // first phone number or null
 $place->hasWebsite();        // true if website is set
 $place->getCoordinates();    // ['lng' => float, 'lat' => float] or null
 $place->isVerified();        // true if owner is verified
+$place->hasVideos();         // true if videos array is not empty
+$place->hasMenu();           // true if menu data is present
 ```
 
 ### 2. Reviews (Yandex Maps)
@@ -169,6 +171,7 @@ $review->hasPhotos();             // true if review has photos
 $review->hasVideos();             // true if review has videos
 $review->isPositive();            // true if rating >= 4
 $review->isNegative();            // true if rating <= 2
+$review->hasTranslation();        // true if text translations exist
 ```
 
 ### 3. Products (Yandex Market)
@@ -226,6 +229,98 @@ $product->hasImages();          // true if images array is not empty
 $product->isInStock();          // true if product is available
 $product->getPriceFormatted();  // "54,990 RUB" or null
 $product->getYaBankDiscount();  // percentage discount (e.g. 10.0) or null
+$product->hasUgcImages();       // true if user-generated images exist
+$product->hasVideos();          // true if videos array is not empty
+```
+
+### 4. Real Estate Listings (Yandex Realty)
+
+Scrape property listings from Yandex Realty -- Russia's major real estate platform. Returns detailed listing data with pricing, location, property specs, seller info, price predictions, and more.
+
+```php
+use YandexParser\DealType;
+use YandexParser\PropertyCategory;
+use YandexParser\RealtySort;
+
+$listings = $client->scrapeListings(
+    location: 'Moscow',
+    dealType: DealType::Sell,
+    category: PropertyCategory::Apartment,
+    maxItems: 50,
+    sort: RealtySort::PriceAsc,
+    roomsTotal: ['1', '2'],
+    options: [
+        'priceMin' => 5000000,
+        'priceMax' => 15000000,
+    ],
+);
+
+foreach ($listings as $listing) {
+    echo "{$listing->getAddress()} — {$listing->getPriceValue()} RUR\n";
+    echo "Area: {$listing->getAreaValue()} m², floor: {$listing->floorsOffered[0] ?? '?'}/{$listing->floorsTotal}\n";
+
+    if ($listing->hasPhones()) {
+        echo "Phone: {$listing->getFirstPhone()}\n";
+    }
+
+    if (!$listing->isFromOwner()) {
+        echo "Agency: {$listing->getSellerName()}\n";
+    }
+
+    $predicted = $listing->getPredictedPrice();
+    if ($predicted !== null) {
+        echo "Predicted: {$predicted['min']}–{$predicted['max']} RUR\n";
+    }
+}
+```
+
+**Parameters for `scrapeListings()`:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `location` | `string` | `'Москва'` | City or region name |
+| `dealType` | `DealType` | `Sell` | Deal type (sell or rent) |
+| `category` | `PropertyCategory` | `Apartment` | Property category |
+| `maxItems` | `int` | `100` | Max listings to return |
+| `sort` | `RealtySort` | `Relevance` | Sort order |
+| `roomsTotal` | `string[]` | `[]` | Room filter: `STUDIO`, `1`, `2`, `3`, `PLUS_4` |
+
+**Available options for `scrapeListings()`:**
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `priceMin` | `int` | Minimum price filter |
+| `priceMax` | `int` | Maximum price filter |
+| `areaMin` | `int` | Minimum area (m²) |
+| `areaMax` | `int` | Maximum area (m²) |
+| `floorMin` | `int` | Minimum floor |
+| `floorMax` | `int` | Maximum floor |
+| `agents` | `bool` | Include agent listings |
+| `regionId` | `string` | Yandex region ID |
+| `includePhones` | `bool` | Fetch phone numbers |
+| `includePriceHistory` | `bool` | Fetch price change history |
+
+**Listing DTO helpers:**
+
+```php
+$listing->getPriceValue();       // price in rubles or null
+$listing->getPriceCurrency();    // currency code (e.g. "RUR") or null
+$listing->getPriceTrend();       // "INCREASED", "DECREASED", "UNCHANGED" or null
+$listing->getPreviousPrice();    // previous price value or null
+$listing->getAddress();          // full address string or null
+$listing->getCoordinates();      // ['lat' => float, 'lng' => float] or null
+$listing->getCity();             // city name or null
+$listing->getRegion();           // region/federation name or null
+$listing->getAreaValue();        // total area in m² or null
+$listing->hasPhones();           // true if phone numbers available
+$listing->getFirstPhone();       // first phone number or null
+$listing->getWhatsAppPhones();   // WhatsApp numbers from author
+$listing->hasImages();           // true if images exist
+$listing->hasPriceHistory();     // true if price history available
+$listing->getSellerName();       // seller/agency name or null
+$listing->isFromOwner();         // true if listed by owner (not agency)
+$listing->getBuildingYear();     // construction year or null
+$listing->getPredictedPrice();   // ['min' => int, 'max' => int, 'value' => int] or null
 ```
 
 ## Enums Reference
@@ -284,6 +379,36 @@ Supported across places and reviews actors. 6 languages covering the Yandex Maps
 | `Volgograd` | `63` | Volgograd |
 | `Krasnoyarsk` | `66` | Krasnoyarsk |
 | `Omsk` | `68` | Omsk |
+
+### DealType
+
+| Case | Value | Description |
+|------|-------|-------------|
+| `Sell` | `SELL` | Properties for sale |
+| `Rent` | `RENT` | Properties for rent |
+
+### PropertyCategory
+
+| Case | Value | Description |
+|------|-------|-------------|
+| `Apartment` | `APARTMENT` | Apartments |
+| `Rooms` | `ROOMS` | Individual rooms |
+| `House` | `HOUSE` | Houses / cottages |
+| `Lot` | `LOT` | Land plots |
+| `Commercial` | `COMMERCIAL` | Commercial real estate |
+| `Garage` | `GARAGE` | Garages / parking |
+
+### RealtySort
+
+| Case | Value | Description |
+|------|-------|-------------|
+| `Relevance` | `RELEVANCE` | Most relevant first |
+| `Newest` | `DATE_DESC` | Newest first |
+| `PriceAsc` | `PRICE` | Lowest price first |
+| `PriceDesc` | `PRICE_DESC` | Highest price first |
+| `AreaAsc` | `AREA` | Smallest area first |
+| `AreaDesc` | `AREA_DESC` | Largest area first |
+| `CommissioningDate` | `COMMISSIONING_DATE` | By commissioning date |
 
 ## Configuration
 

@@ -12,6 +12,8 @@ final readonly class Config
 
     public const MARKET_ACTOR_ID = 'zen-studio/yandex-market-scraper-parser';
 
+    public const REALTY_ACTOR_ID = 'zen-studio/yandex-realty-scraper';
+
     public function __construct(
         public string $apiToken,
         public string $baseUrl = 'https://api.apify.com/v2',

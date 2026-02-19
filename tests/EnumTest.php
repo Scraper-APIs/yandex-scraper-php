@@ -2,9 +2,12 @@
 
 declare(strict_types=1);
 
+use YandexParser\DealType;
 use YandexParser\Language;
 use YandexParser\MarketRegion;
 use YandexParser\MarketSort;
+use YandexParser\PropertyCategory;
+use YandexParser\RealtySort;
 use YandexParser\ReviewSort;
 
 it('has correct language values', function () {
@@ -81,4 +84,52 @@ it('can create market region from value', function () {
         ->and(MarketRegion::from('43'))->toBe(MarketRegion::Kazan)
         ->and(MarketRegion::from('65'))->toBe(MarketRegion::Novosibirsk)
         ->and(MarketRegion::from('69'))->toBe(MarketRegion::NizhnyNovgorod);
+});
+
+it('has correct deal type values', function () {
+    expect(DealType::Sell->value)->toBe('SELL')
+        ->and(DealType::Rent->value)->toBe('RENT');
+});
+
+it('can create deal type from value', function () {
+    expect(DealType::from('SELL'))->toBe(DealType::Sell)
+        ->and(DealType::from('RENT'))->toBe(DealType::Rent);
+});
+
+it('has correct property category values', function () {
+    expect(PropertyCategory::Apartment->value)->toBe('APARTMENT')
+        ->and(PropertyCategory::Rooms->value)->toBe('ROOMS')
+        ->and(PropertyCategory::House->value)->toBe('HOUSE')
+        ->and(PropertyCategory::Lot->value)->toBe('LOT')
+        ->and(PropertyCategory::Commercial->value)->toBe('COMMERCIAL')
+        ->and(PropertyCategory::Garage->value)->toBe('GARAGE');
+});
+
+it('can create property category from value', function () {
+    expect(PropertyCategory::from('APARTMENT'))->toBe(PropertyCategory::Apartment)
+        ->and(PropertyCategory::from('ROOMS'))->toBe(PropertyCategory::Rooms)
+        ->and(PropertyCategory::from('HOUSE'))->toBe(PropertyCategory::House)
+        ->and(PropertyCategory::from('LOT'))->toBe(PropertyCategory::Lot)
+        ->and(PropertyCategory::from('COMMERCIAL'))->toBe(PropertyCategory::Commercial)
+        ->and(PropertyCategory::from('GARAGE'))->toBe(PropertyCategory::Garage);
+});
+
+it('has correct realty sort values', function () {
+    expect(RealtySort::Relevance->value)->toBe('RELEVANCE')
+        ->and(RealtySort::Newest->value)->toBe('DATE_DESC')
+        ->and(RealtySort::PriceAsc->value)->toBe('PRICE')
+        ->and(RealtySort::PriceDesc->value)->toBe('PRICE_DESC')
+        ->and(RealtySort::AreaAsc->value)->toBe('AREA')
+        ->and(RealtySort::AreaDesc->value)->toBe('AREA_DESC')
+        ->and(RealtySort::CommissioningDate->value)->toBe('COMMISSIONING_DATE');
+});
+
+it('can create realty sort from value', function () {
+    expect(RealtySort::from('RELEVANCE'))->toBe(RealtySort::Relevance)
+        ->and(RealtySort::from('DATE_DESC'))->toBe(RealtySort::Newest)
+        ->and(RealtySort::from('PRICE'))->toBe(RealtySort::PriceAsc)
+        ->and(RealtySort::from('PRICE_DESC'))->toBe(RealtySort::PriceDesc)
+        ->and(RealtySort::from('AREA'))->toBe(RealtySort::AreaAsc)
+        ->and(RealtySort::from('AREA_DESC'))->toBe(RealtySort::AreaDesc)
+        ->and(RealtySort::from('COMMISSIONING_DATE'))->toBe(RealtySort::CommissioningDate);
 });

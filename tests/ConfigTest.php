@@ -27,5 +27,6 @@ it('accepts custom values', function () {
 it('has hardcoded actor IDs', function () {
     expect(Config::PLACES_ACTOR_ID)->toBe('zen-studio/yandex-places-scraper')
         ->and(Config::REVIEWS_ACTOR_ID)->toBe('zen-studio/yandex-reviews-scraper')
-        ->and(Config::MARKET_ACTOR_ID)->toBe('zen-studio/yandex-market-scraper-parser');
+        ->and(Config::MARKET_ACTOR_ID)->toBe('zen-studio/yandex-market-scraper-parser')
+        ->and(Config::REALTY_ACTOR_ID)->toBe('zen-studio/yandex-realty-scraper');
 });
