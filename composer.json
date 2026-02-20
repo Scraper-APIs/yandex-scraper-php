@@ -1,5 +1,5 @@
 {
-    "name": "scraper-apis/yandex-parser",
+    "name": "scraper-apis/yandex-scraper",
     "description": "PHP client library for scraping Yandex data (places, reviews, market products) using Apify actors",
     "type": "library",
     "license": "MIT",
