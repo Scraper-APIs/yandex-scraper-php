@@ -9,7 +9,7 @@ Powered by [Apify](https://apify.com/) actors under the hood.
 ## Installation
 
 ```bash
-composer require scraper-apis/yandex-parser
+composer require scraper-apis/yandex-scraper
 ```
 
 ## Quick Start
@@ -450,7 +450,7 @@ try {
 
 ## See Also
 
-- [2GIS Scraper PHP](https://github.com/Scraper-APIs/2gis-scraper-php) — scrape 2GIS (places, reviews, real estate, jobs)
+- [2GIS Scraper PHP](https://github.com/Scraper-APIs/2gis-scraper-php) — scrape 2GIS places and reviews, real estate, jobs across 200+ cities in 20 countries
 
 ## License
 
