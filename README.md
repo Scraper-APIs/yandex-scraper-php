@@ -109,7 +109,7 @@ $places = $client->scrapePlaces(
 $place->hasContactInfo();    // true if phones or email exist
 $place->getFirstPhone();     // first phone number or null
 $place->hasWebsite();        // true if website is set
-$place->getCoordinates();    // ['lng' => float, 'lat' => float] or null
+$place->getCoordinates();    // ['lat' => float, 'lng' => float] or null
 $place->isVerified();        // true if owner is verified
 $place->hasVideos();         // true if videos array is not empty
 $place->hasMenu();           // true if menu data is present
